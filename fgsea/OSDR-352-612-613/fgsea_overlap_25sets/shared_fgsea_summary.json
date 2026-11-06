@@ -1,0 +1,26 @@
+{
+  "dataset_name": "OSDR-352-612-613",
+  "timestamp": "2026-10-28T05:10:22.636474",
+  "organism": "mouse",
+  "top_n_genes": 50,
+  "max_go_per_model": 25,
+  "fdr_q_threshold": 0.05,
+  "real_significant_go": 25,
+  "msigdb_collections": [
+    "m5.all"
+  ],
+  "msigdb_version": "2026.2.Mm",
+  "universe_N": 46339,
+  "go_overlap_counts": {
+    "CVAE": 21,
+    "Diffusion": 21,
+    "GAN": 22
+  },
+  "go_overlap_pct_of_real": {
+    "CVAE": 84.0,
+    "Diffusion": 84.0,
+    "GAN": 88.0
+  },
+  "best_model": "GAN",
+  "best_model_count": 22
+}

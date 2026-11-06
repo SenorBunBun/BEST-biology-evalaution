@@ -1,0 +1,137 @@
+#!/usr/bin/env python3
+"""
+RF Classifier Analysis Runner for Pipeline Integration
+
+Runs Random Forest classification analysis comparing real vs synthetic data.
+
+Usage:
+    python run_classifier_analysis.py --real path/to/real.h5ad --synthetic path/to/synthetic.h5ad \
+        --output-dir path/to/output --column-name tissue --group1 "metastasis normal" --group2 "metastasis tumor"
+"""
+
+import argparse
+import sys
+from pathlib import Path
+import scanpy as sc
+
+# Add parent directory to path
+sys.path.insert(0, str(Path(__file__).parent))
+
+from rf_classifier_gene_pipeline import RFClassifierComparison
+
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='Run RF classifier analysis comparing real vs synthetic data'
+    )
+
+    parser.add_argument('--real', required=True,
+                        help='Path to real data h5ad file')
+    parser.add_argument('--synthetic', required=True,
+                        help='Path to synthetic data h5ad file')
+    parser.add_argument('--output-dir', required=True,
+                        help='Output directory for results')
+    parser.add_argument('--column-name', required=True,
+                        help='Column name for grouping (e.g., tissue, Flight)')
+    parser.add_argument('--group1', required=True,
+                        help='First group value')
+    parser.add_argument('--group2', required=True,
+                        help='Second group value')
+    parser.add_argument('--group1-display', default=None,
+                        help='Display name for group1 in plots (default: same as group1)')
+    parser.add_argument('--group2-display', default=None,
+                        help='Display name for group2 in plots (default: same as group2)')
+    parser.add_argument('--name1', default='Real',
+                        help='Name for real dataset (default: Real)')
+    parser.add_argument('--name2', default='Synthetic',
+                        help='Name for synthetic dataset (default: Synthetic)')
+    parser.add_argument('--n-genes', type=int, default=50,
+                        help='Number of top genes to analyze (default: 50)')
+    parser.add_argument('--n-estimators', type=int, default=100,
+                        help='Number of RF estimators (default: 100)')
+    parser.add_argument('--n-folds', type=int, default=5,
+                        help='Number of CV folds (default: 5)')
+    parser.add_argument('--n-repeats', type=int, default=3,
+                        help='Number of CV repeats (default: 3)')
+    parser.add_argument('--show-plots', action='store_true',
+                        help='Display plots with plt.show() (default: False)')
+
+    return parser.parse_args()
+
+
+def main():
+    args = parse_args()
+
+    print("=" * 60)
+    print("RF Classifier Analysis Pipeline")
+    print("=" * 60)
+
+    # Use display names if provided, otherwise use raw values
+    group1_display = args.group1_display if args.group1_display else args.group1
+    group2_display = args.group2_display if args.group2_display else args.group2
+
+    print(f"\nConfiguration:")
+    print(f"  Real data: {args.real}")
+    print(f"  Synthetic data: {args.synthetic}")
+    print(f"  Output: {args.output_dir}")
+    print(f"  Column: {args.column_name}")
+    print(f"  Groups: {args.group1} vs {args.group2}")
+    print(f"  Display: {group1_display} vs {group2_display}")
+    print(f"  N genes: {args.n_genes}")
+    print(f"  N estimators: {args.n_estimators}")
+
+    # Load data
+    print("\n" + "-" * 40)
+    print("Loading data...")
+
+    try:
+        adata_real = sc.read_h5ad(args.real)
+        print(f"[OK] Real: {adata_real.n_obs} cells x {adata_real.n_vars} genes")
+
+        adata_synthetic = sc.read_h5ad(args.synthetic)
+        print(f"[OK] Synthetic: {adata_synthetic.n_obs} cells x {adata_synthetic.n_vars} genes")
+
+    except Exception as e:
+        print(f"[ERROR] Failed to load data: {e}")
+        sys.exit(1)
+
+    # Run analysis
+    print("\n" + "-" * 40)
+    print("Running RF classifier analysis...")
+
+    try:
+        analyzer = RFClassifierComparison(
+            adata1=adata_real,
+            adata2=adata_synthetic,
+            name1=args.name1,
+            name2=args.name2,
+            output_dir=args.output_dir,
+            column_name=args.column_name,
+            group1=args.group1,
+            group2=args.group2,
+            group1_display=group1_display,
+            group2_display=group2_display,
+            n_estimators=args.n_estimators,
+            n_folds=args.n_folds,
+            n_repeats=args.n_repeats,
+            show_plots=args.show_plots
+        )
+
+        results = analyzer.run_analysis(n_genes=args.n_genes)
+
+        print("\n" + "=" * 60)
+        print("RF CLASSIFIER ANALYSIS COMPLETE")
+        print("=" * 60)
+        print(f"Results saved to: {args.output_dir}")
+
+        sys.exit(0)
+
+    except Exception as e:
+        print(f"[ERROR] Analysis failed: {e}")
+        import traceback
+        traceback.print_exc()
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()

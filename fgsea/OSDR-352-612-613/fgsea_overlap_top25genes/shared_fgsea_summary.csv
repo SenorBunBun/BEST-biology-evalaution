@@ -1,0 +1,4 @@
+Model,Overlapping_GO,Real_Significant_GO,Overlap_Pct_of_Real
+CVAE,6,10,60.0
+Diffusion,5,10,50.0
+GAN,6,10,60.0

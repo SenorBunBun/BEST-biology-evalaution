@@ -1,0 +1,25 @@
+dataset,task,n_cells,class_1,class_1_pct,class_2,class_2_pct,majority_class,majority_baseline_pct,model,rf_accuracy_pct,rf_acc_std_pct,rf_f1,lift_over_majority_pts,beats_baseline
+OSDR-402,Spaceflight vs Ground Control,1534,Ground Control,30.0,Spaceflight,70.0,Spaceflight,70.0,Real (ceiling),69.9,0.3,0.014,-0.1,no (~majority)
+OSDR-402,Spaceflight vs Ground Control,1534,Ground Control,30.0,Spaceflight,70.0,Spaceflight,70.0,CVAE,93.2,1.4,0.881,+23.2,yes
+OSDR-402,Spaceflight vs Ground Control,1534,Ground Control,30.0,Spaceflight,70.0,Spaceflight,70.0,cfDiffusion,70.1,0.1,0.003,+0.0,no (~majority)
+OSDR-402,Spaceflight vs Ground Control,1534,Ground Control,30.0,Spaceflight,70.0,Spaceflight,70.0,scGAN,70.7,1.0,0.108,+0.7,no (~majority)
+OSDR-403,Spaceflight vs Ground Control,1561,Ground Control,47.3,Spaceflight,52.7,Spaceflight,52.7,Real (ceiling),54.0,2.3,0.381,+1.4,yes
+OSDR-403,Spaceflight vs Ground Control,1561,Ground Control,47.3,Spaceflight,52.7,Spaceflight,52.7,CVAE,63.7,2.4,0.610,+11.0,yes
+OSDR-403,Spaceflight vs Ground Control,1561,Ground Control,47.3,Spaceflight,52.7,Spaceflight,52.7,cfDiffusion,53.9,2.8,0.428,+1.2,yes
+OSDR-403,Spaceflight vs Ground Control,1561,Ground Control,47.3,Spaceflight,52.7,Spaceflight,52.7,scGAN,62.3,2.1,0.520,+9.6,yes
+OSDR-404,Spaceflight vs Ground Control,14045,Ground Control,38.5,Spaceflight,61.5,Spaceflight,61.5,Real (ceiling),62.8,0.3,0.088,+1.3,yes
+OSDR-404,Spaceflight vs Ground Control,14045,Ground Control,38.5,Spaceflight,61.5,Spaceflight,61.5,CVAE,77.7,0.4,0.645,+16.2,yes
+OSDR-404,Spaceflight vs Ground Control,14045,Ground Control,38.5,Spaceflight,61.5,Spaceflight,61.5,cfDiffusion,61.5,0.2,0.011,-0.1,no (~majority)
+OSDR-404,Spaceflight vs Ground Control,14045,Ground Control,38.5,Spaceflight,61.5,Spaceflight,61.5,scGAN,62.9,0.5,0.099,+1.4,yes
+OSDR-405,Spaceflight vs Ground Control,3384,Ground Control,35.3,Spaceflight,64.7,Spaceflight,64.7,Real (ceiling),65.0,0.2,0.017,+0.3,no (~majority)
+OSDR-405,Spaceflight vs Ground Control,3384,Ground Control,35.3,Spaceflight,64.7,Spaceflight,64.7,CVAE,79.1,1.2,0.595,+14.5,yes
+OSDR-405,Spaceflight vs Ground Control,3384,Ground Control,35.3,Spaceflight,64.7,Spaceflight,64.7,cfDiffusion,64.8,0.3,0.024,+0.1,no (~majority)
+OSDR-405,Spaceflight vs Ground Control,3384,Ground Control,35.3,Spaceflight,64.7,Spaceflight,64.7,scGAN,65.6,0.4,0.074,+0.9,no (~majority)
+OSD-352/612/613,Spaceflight vs Ground Control,213854,Ground Control,54.2,Spaceflight,45.8,Ground Control,54.2,Real (ceiling),69.1,0.2,0.754,+14.9,yes
+OSD-352/612/613,Spaceflight vs Ground Control,213854,Ground Control,54.2,Spaceflight,45.8,Ground Control,54.2,CVAE,80.1,0.2,0.811,+25.8,yes
+OSD-352/612/613,Spaceflight vs Ground Control,213854,Ground Control,54.2,Spaceflight,45.8,Ground Control,54.2,cfDiffusion,81.0,0.2,0.842,+26.8,yes
+OSD-352/612/613,Spaceflight vs Ground Control,213854,Ground Control,54.2,Spaceflight,45.8,Ground Control,54.2,scGAN,77.1,0.2,0.809,+22.8,yes
+GSE164522,Metastasis Tumor vs Normal,96023,metastasis normal,61.1,metastasis tumor,38.9,metastasis normal,61.1,Real (ceiling),81.2,0.2,0.729,+20.1,yes
+GSE164522,Metastasis Tumor vs Normal,96023,metastasis normal,61.1,metastasis tumor,38.9,metastasis normal,61.1,CVAE,95.9,0.2,0.945,+34.8,yes
+GSE164522,Metastasis Tumor vs Normal,96023,metastasis normal,61.1,metastasis tumor,38.9,metastasis normal,61.1,cfDiffusion,85.3,0.2,0.800,+24.2,yes
+GSE164522,Metastasis Tumor vs Normal,96023,metastasis normal,61.1,metastasis tumor,38.9,metastasis normal,61.1,scGAN,86.8,0.4,0.809,+25.7,yes

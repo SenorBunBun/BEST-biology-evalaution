@@ -1,0 +1,7 @@
+dataset,task,label_column,class_1,class_1_pct,class_1_n,class_2,class_2_pct,class_2_n,classifier_cells
+OSDR-402,Spaceflight vs Ground Control,Flight,Ground Control,29.99,460,Spaceflight,70.01,1074,1534
+OSDR-403,Spaceflight vs Ground Control,Flight,Ground Control,47.34,739,Spaceflight,52.66,822,1561
+OSDR-404,Spaceflight vs Ground Control,Flight,Ground Control,38.48,5404,Spaceflight,61.52,8641,14045
+OSDR-405,Spaceflight vs Ground Control,Flight,Ground Control,35.31,1195,Spaceflight,64.69,2189,3384
+OSDR-352-612-613,Spaceflight vs Ground Control,Flight,Ground Control,54.24,116004,Spaceflight,45.76,97850,213854
+CRC_IMM_10X,Metastasis Tumor vs Normal,tissue,metastasis normal,61.09,58664,metastasis tumor,38.91,37359,96023

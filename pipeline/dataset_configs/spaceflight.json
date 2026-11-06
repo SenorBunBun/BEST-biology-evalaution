@@ -1,0 +1,166 @@
+{
+  "dataset_name": "spaceflight",
+  "description": "Spaceflight scRNA-seq dataset for synthetic data generation",
+
+  "paths": {
+    "raw_data": "real_datasets/spaceflight_raw.h5ad",
+    "processed_data": "outputs/spaceflight/preprocessed_data.h5ad",
+    "output_dir": "outputs/spaceflight"
+  },
+
+  "preprocessing": {
+    "enabled": true,
+    "min_cells": 3,
+    "sparsity_threshold": 0.997,
+    "n_hvg": 2000,
+    "normalize": true
+  },
+
+  "conditions": {
+    "columns": ["Flight", "Strain"],
+    "types": {
+      "Flight": "categorical",
+      "Strain": "categorical"
+    },
+    "primary": {
+      "column": "Flight",
+      "group1": "0.0",
+      "group2": "1.0",
+      "group1_display_name": "Ground Control",
+      "group2_display_name": "Spaceflight"
+    }
+  },
+
+  "models": {
+    "cvae": {
+      "enabled": true,
+      "use_checkpoint": "latest",
+      "latent_size": 32,
+      "hidden_dims": [800, 400],
+      "beta": 0.05,
+      "dropout": 0.03,
+      "lr": 0.01,
+      "weight_decay": 0.001,
+      "batch_size": 128,
+      "n_epochs": 50,
+      "patience": 15,
+      "val_split": 0.3,
+      "checkpoint_freq": 10
+    },
+    "diffusion": {
+      "enabled": true,
+      "use_checkpoint": "latest",
+      "vae_latent_size": 128,
+      "vae_hidden_dims": [1024, 1024],
+      "vae_beta": 0.001,
+      "vae_dropout": 0.1,
+      "vae_lr": 0.001,
+      "vae_weight_decay": 0.001,
+      "vae_n_epochs": 200,
+      "vae_patience": 20,
+      "vae_overfitting_patience": 10,
+      "vae_min_delta": 1e-4,
+      "latent_size": 128,
+      "hidden_dims": [512, 512, 256, 128],
+      "num_timesteps": 1000,
+      "beta_schedule": "cosine",
+      "classifier_free_prob": 0.1,
+      "guidance_scale": 2.0,
+      "dropout": 0.1,
+      "lr": 1e-4,
+      "weight_decay": 1e-5,
+      "batch_size": 128,
+      "n_epochs": 50,
+      "patience": 15,
+      "train_split": 0.8,
+      "val_split": 0.1,
+      "checkpoint_freq": 5
+    },
+    "gan": {
+      "enabled": true,
+      "use_checkpoint": "latest",
+      "latent_dim": 128,
+      "gen_layers": [256, 512, 1024],
+      "critic_layers": [1024, 512, 256],
+      "lambda_gp": 15.0,
+      "gp_target": 0.6,
+      "lr_g": 0.00015,
+      "lr_c": 0.00015,
+      "beta1": 0.0,
+      "beta2": 0.9,
+      "batch_size": 32,
+      "max_steps": 300000,
+      "critic_iters": 4,
+      "patience": 20,
+      "train_split": 0.85,
+      "save_freq": 500,
+      "log_freq": 100,
+      "validation_freq": 1,
+      "clip_gradients": true,
+      "gradient_clip_norm": 1.0
+    }
+  },
+
+  "visualization": {
+    "model_order": ["cvae", "diffusion", "gan"],
+    "colors": {
+      "cvae": "#8E44AD",
+      "diffusion": "#E57373",
+      "gan": "#E69F00"
+    },
+    "display_names": {
+      "cvae": "CVAE",
+      "diffusion": "Diffusion",
+      "gan": "GAN"
+    },
+    "dpi": 300,
+    "format": "png"
+  },
+
+  "plots": {
+    "umap_real": {
+      "name": "umap_real_only_{model_name}",
+      "title": "UMAP: Real Data ({model_name})"
+    },
+    "umap_combined": {
+      "name": "umap_real_vs_{model_name}",
+      "title": "UMAP: Real vs. Synthetic Data ({model_name})"
+    },
+    "metrics": {
+      "name": "scientific_metrics_comparison",
+      "title": "Synthetic Data Quality Assessment for CVAE, Diffusion, and GAN Models for {dataset_name}"
+    },
+    "deg_overlap": {
+      "name": "shared_deg_comparison",
+      "title": "Shared Differentially Expressed Genes between Real and CVAE, Diffusion, & GAN Model Generated Data for {dataset_name}"
+    },
+    "classifier": {
+      "name": "phenotype_predictive_genes",
+      "title": "Overlap of Phenotypically Predictive Genes: {group1_display_name} vs. {group2_display_name} Classification in {dataset_name}"
+    }
+  },
+
+  "analysis": {
+    "deg": {
+      "enabled": true,
+      "n_genes": 50,
+      "method": "wilcoxon"
+    },
+    "umap": {
+      "enabled": true,
+      "n_neighbors": 15,
+      "min_dist": 0.1
+    },
+    "metrics": {
+      "enabled": true
+    },
+    "classifier": {
+      "enabled": true,
+      "n_genes": 50,
+      "n_estimators": 100,
+      "max_depth": 10,
+      "n_folds": 5,
+      "n_repeats": 3
+    }
+  }
+}

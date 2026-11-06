@@ -1,0 +1,9 @@
+Metric,Value
+Max GO analyzed,25
+FDR q-value threshold,0.05
+Real significant GO,25
+Synthetic_DIFFUSION significant GO,25
+Overlapping GO,21
+Jaccard Index,0.7241
+Overlap % (of Real),84.00%
+Overlap % (of Synthetic_DIFFUSION),84.00%

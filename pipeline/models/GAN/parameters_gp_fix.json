@@ -1,0 +1,38 @@
+{
+  "data": {
+    "input_file": "data/raw_0.997_filtered_hvg_2000_augmented_combined_norm.h5ad",
+    "conditions": ["Strain", "Age at Launch", "Duration", "Flight"],
+    "gene_dim": 2000,
+    "train_split": 0.85,
+    "valid_split": 0.15,
+    "batch_size": 32
+  },
+  "model": {
+    "latent_dim": 128,
+    "gen_layers": [256, 512, 1024],
+    "critic_layers": [1024, 512, 256],
+    "lambda_gp": 15.0,
+    "gp_target": 0.6
+  },
+  "training": {
+    "max_epochs": 100,
+    "max_steps": 300000,
+    "critic_iters": 4,
+    "learning_rate_g": 0.00015,
+    "learning_rate_c": 0.00015,
+    "beta1": 0.0,
+    "beta2": 0.9,
+    "patience": 20,
+    "checkpoint_freq": 20,
+    "validation_freq": 5,
+    "log_freq": 100,
+    "save_freq": 500,
+    "clip_gradients": true,
+    "gradient_clip_norm": 1.0
+  },
+  "output": {
+    "checkpoint_dir": "multi_cond/checkpoints",
+    "log_dir": "multi_cond/logs",
+    "generated_dir": "multi_cond/generated"
+  }
+}

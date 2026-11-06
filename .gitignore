@@ -1,0 +1,29 @@
+# --- Virtual environments ---
+.venv_pipeline/
+fgsea/.venv_fgsea/
+**/.venv*/
+
+# --- Pipeline outputs (regenerated; never committed) ---
+pipeline/outputs/
+pipeline/cross_dataset_plots/
+
+# --- Large data (kept on the Windows SSD, not in git) ---
+*.h5ad
+*.h5
+*.npz
+*.npy
+
+# --- fGSEA regenerable cache (GO gene-set downloads) ---
+fgsea/_cache/
+
+# --- Python cruft ---
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# --- OS / IDE ---
+.DS_Store
+.idea/
+.claude/
+nul

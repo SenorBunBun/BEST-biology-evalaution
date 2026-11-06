@@ -1,0 +1,27 @@
+{
+  "dataset_name": "CRC_IMM_10X",
+  "run": "base_100epoch",
+  "timestamp": "2026-10-30T13:08:03.119167",
+  "organism": "human",
+  "top_n_genes": 50,
+  "max_go_per_model": 10,
+  "fdr_q_threshold": 0.05,
+  "real_significant_go": 10,
+  "msigdb_collections": [
+    "c5.all"
+  ],
+  "msigdb_version": "2026.2.Hs",
+  "universe_N": 43841,
+  "go_overlap_counts": {
+    "CVAE": 0,
+    "Diffusion": 3,
+    "GAN": 5
+  },
+  "go_overlap_pct_of_real": {
+    "CVAE": 0.0,
+    "Diffusion": 30.0,
+    "GAN": 50.0
+  },
+  "best_model": "GAN",
+  "best_model_count": 5
+}
