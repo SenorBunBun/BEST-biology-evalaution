@@ -178,8 +178,9 @@ def generate_synthetic_data(args):
     print(f"  Latent size: {args.latent_size}")
     print(f"  Scale factor: {args.scale_factor}")
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"  Device: {device}")
+    from utils.device import get_device, device_label
+    device = get_device()
+    print(f"  Device: {device_label(device)}")
 
     # =========================================================================
     # LOAD REFERENCE DATA

@@ -40,20 +40,25 @@
 \captionsetup{font=small,labelfont=bf}
 \setlength{\parskip}{4pt}
 
-\title{\bfseries \fides{}: a biological-fidelity framework for evaluating synthetic single-cell RNA-seq, applied to spaceflight transcriptomics}
+\title{\bfseries \fides{}: Biological Evaluation of Synthetic Transcriptomics, a framework for synthetic scRNA-seq evaluation applied to spaceflight}
 
 \author[1,2]{Arsh Suri\thanks{Corresponding author: suriarsh@gmail.com}}
+\author[5,$\dagger$]{Sarah Golts}
+\author[5,$\dagger$]{Jason Trinh}
 \author[3]{Walter Alvarado}
 \author[4]{James Casaletto}
 \affil[1]{Wallace H.\ Coulter Department of Biomedical Engineering, Georgia Institute of Technology, Atlanta, GA, USA}
 \affil[2]{Space Life Sciences Training Program, NASA Ames Research Center, Moffett Field, CA, USA}
 \affil[3]{Space Biosciences Research Branch, NASA Ames Research Center, Moffett Field, CA, USA}
 \affil[4]{Blue Marble Space Institute of Science, Seattle, WA, USA}
+\affil[5]{Affiliation not provided.}
+\affil[$\dagger$]{These authors contributed equally.}
 
 \date{}
 
 \begin{document}
 \maketitle
+\vspace{-2.5em}
 
 % =====================================================================
 \begin{abstract}
@@ -353,6 +358,9 @@ Several limitations bound our claims. The dataset panel, while at or above the s
 \subsection{Implications for spaceflight medicine}
 Condition-controllable synthetic cells enable in silico cohorts that are impossible to collect from astronauts, supporting power analyses, countermeasure screening across genetic backgrounds, and the development of predictive health models under the sample scarcity that defines this field \cite{scott,ilangovan}. The multi-conditional generation demonstrated here is what makes such cohorts possible, and \fides{} gives the community a way to decide which synthetic data is trustworthy enough to use for these purposes.
 
+\subsection{Future directions}
+The multi-conditional scGAN is a powerful generator for this regime, leading on every biological layer and uniquely preserving single-cell sparsity, but the larger contribution is the platform that let us establish this. Because \fides{} is model-agnostic, the same evaluation applies unchanged to any generator, which opens a natural next step: models pretrained on the large biomedical and disease scRNA-seq corpora now available and then transfer-learned to the small spaceflight cohorts, a strategy well suited to extreme data scarcity but so far untested here for biological fidelity. \fides{} makes such comparisons routine. A foundation-model generator, a diffusion variant, or a transfer-learned adaptation of any architecture can be dropped into the same pipeline and scored on equal terms against the generators reported here, so that the field can ask not only whether a new model produces plausible cells but whether it preserves the differential expression, predictive gene programs, and enriched pathways that make spaceflight data worth generating.
+
 % =====================================================================
 \section{Methods}
 
@@ -405,10 +413,10 @@ All scRNA-seq datasets are available in the NASA OSDR \cite{osdr} and, for the c
 
 % =====================================================================
 \section*{Acknowledgements}
-We thank the Space Life Sciences Training Program and the AI4LS team at NASA Ames Research Center for support. \res{Add grant numbers, VIP program acknowledgement, and any additional personnel.}
+We thank the Space Life Sciences Training Program and the AI4LS team at NASA Ames Research Center for support.
 
 \section*{Author contributions}
-\res{Specify, e.g.: A.S.\ conceived the study, implemented the models and the \fides{} framework, ran experiments, and wrote the manuscript; W.A.\ and J.C.\ supervised and edited.}
+A.S.\ conceived and compiled the study, built the \fides{} framework and the scalable evaluation pipeline, and wrote the manuscript. S.G.\ wrote the base CVAE implementation that was subsequently adapted. J.T.\ developed the augmented evaluation layer. J.C.\ provided direct support throughout the project. W.A.\ provided overall review. S.G.\ and J.T.\ contributed equally.
 
 \section*{Competing interests}
 The authors declare no competing interests.

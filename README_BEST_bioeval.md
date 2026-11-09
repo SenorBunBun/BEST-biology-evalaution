@@ -12,7 +12,8 @@ environment.
 | | |
 |---|---|
 | **Location** | `/Users/ljeytl/Arsh/Research/NASA/AI4LS/BEST_bioeval` |
-| **Pipeline env** | `.venv_pipeline/` — Python 3.12 (arm64): PyTorch 2.4.1 (MPS), TensorFlow 2.17 (Keras 3), scanpy stack |
+| **Pipeline env** | `.venv_pipeline/` — Python 3.12 (arm64): PyTorch 2.4.1 (MPS), TensorFlow 2.17 + Metal (Keras 3), scanpy stack |
+| **GPU** | Apple Silicon — PyTorch via **MPS**, TensorFlow via **tensorflow-metal**; both auto-selected |
 | **fGSEA env** | `fgsea/.venv_fgsea/` — separate, Python + system R (`/usr/local/bin/R`) |
 | **Runs locally** | Small OSDR configs (osd_402/403/404/405) |
 | **Needs SSD data** | `cancer`, `CRC_IMM_10X`, `osdr-352-612-613` (large h5ads left on the Windows SSD) |
@@ -72,6 +73,22 @@ Rebuild it anytime with:
 ./.venv_pipeline/bin/pip install -r requirements.txt
 ```
 
+### Apple Silicon GPU acceleration
+
+Both deep-learning frameworks run on the Mac's GPU, selected automatically — no flags:
+
+- **PyTorch (CVAE, Diffusion)** uses **MPS**. Device selection goes through
+  `utils/device.py` (`get_device()` → cuda → mps → cpu), with
+  `PYTORCH_ENABLE_MPS_FALLBACK=1` set so any op MPS doesn't implement falls back to CPU
+  instead of crashing. Each run prints `Device: mps (Apple Silicon GPU)`.
+- **TensorFlow (GAN)** uses **`tensorflow-metal`** (pinned in `requirements.txt`). TF detects
+  the Metal `PluggableDevice` on its own; the GAN logs `GPU: 1 device(s) available` and
+  `Metal device set to: Apple M1`.
+
+Verified on this machine (M1): CVAE trains through the full MPS path (train + validation +
+checkpointing), and the GAN's WGAN-GP — gradient penalty included — runs on Metal. On a
+CUDA box the same code picks `cuda` automatically.
+
 **fGSEA is separate.** `fgsea/` keeps its own `.venv_fgsea` and relies on system R. The venv was
 relocated with the folder, so its `activate` script still points at the old path — call
 `fgsea/.venv_fgsea/bin/python` directly, or recreate the venv, rather than `source`-ing its
@@ -95,8 +112,9 @@ Stages run in order: **preprocess → train (CVAE→Diffusion→GAN) → generat
 See `pipeline/README.md` for the full stage/config/CLI reference.
 
 **Verified on this machine:** dry-run resolves all paths to the new location; a real CVAE train on
-`osd_402` ran to completion (`best_model.pt`, checkpoints, loss curves). The GAN (TensorFlow) and
-Diffusion stages are dependency-verified and wired, but have not yet been run end-to-end here.
+`osd_402` ran to completion on the **MPS GPU** (`best_model.pt`, checkpoints, loss curves), and the
+GAN ran its WGAN-GP loop on the **Metal GPU**. The Diffusion stage is dependency-verified and wired
+(same MPS device path as the CVAE) but has not yet been run end-to-end here.
 
 ---
 

@@ -185,7 +185,10 @@ class DiffusionModelGenerator:
                  num_timesteps: int = 1000, beta_schedule: str = "cosine"):
         self.model = model
         self.condition_processor = condition_processor
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        if device is None:
+            from utils.device import get_device
+            device = get_device()
+        self.device = device
         self.num_timesteps = num_timesteps
 
         # Initialize diffusion parameters

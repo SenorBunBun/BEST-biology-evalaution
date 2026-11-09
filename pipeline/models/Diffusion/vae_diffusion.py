@@ -61,7 +61,8 @@ class DiffusionIntegrationVAE(nn.Module):
             raise ValueError("hidden_dims must be a non-empty list")
         
         # Set device
-        self.device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+        from utils.device import get_device
+        self.device = get_device()
         
         # Build the network
         self._build_encoder()

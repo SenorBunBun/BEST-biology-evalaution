@@ -222,8 +222,9 @@ def train_diffusion(args):
     print(f"  Epochs: {args.n_epochs}")
     print(f"  Batch size: {args.batch_size}")
 
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"  Device: {device}")
+    from utils.device import get_device, device_label
+    device = get_device()
+    print(f"  Device: {device_label(device)}")
 
     # =========================================================================
     # DATA LOADING

@@ -73,7 +73,10 @@ class DiffusionTrainer:
         self.condition_processor = condition_processor
         self.vae_model = vae_model
         self.num_timesteps = num_timesteps
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        if device is None:
+            from utils.device import get_device
+            device = get_device()
+        self.device = device
         self.resume_checkpoint = resume_checkpoint
 
         # Move models to device

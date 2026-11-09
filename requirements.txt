@@ -3,9 +3,9 @@
 # Install: .venv_pipeline/bin/pip install -r requirements.txt
 
 # --- Deep learning ---
-torch==2.4.1                 # CVAE + Diffusion (arm64 wheel, numpy-2 compatible)
+torch==2.4.1                 # CVAE + Diffusion (arm64 wheel, uses Apple MPS GPU)
 tensorflow==2.17.0           # GAN (Keras 3; matches .weights.h5 checkpoint convention)
-# tensorflow-metal==1.1.0    # optional: Apple GPU accel for TF (uncomment to enable)
+tensorflow-metal==1.2.0      # Apple Silicon GPU (Metal) backend for TensorFlow/GAN
 
 # --- Single-cell / data ---
 numpy==1.26.4               # TF 2.17 requires numpy<2.0; compatible with torch 2.4 + scanpy

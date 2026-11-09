@@ -209,8 +209,9 @@ def train_cvae(args):
     # =========================================================================
     # MODEL INITIALIZATION
     # =========================================================================
-    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-    print(f"Device: {device}" + (f" ({torch.cuda.get_device_name()})" if torch.cuda.is_available() else ""))
+    from utils.device import get_device, device_label
+    device = get_device()
+    print(f"Device: {device_label(device)}")
 
     model_path = run_dir / "best_model.pt"
     metrics_path = run_dir / "training_metrics.json"
