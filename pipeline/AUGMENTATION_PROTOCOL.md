@@ -214,6 +214,49 @@ table without re-running.
 
 ---
 
+## Implementation notes & deviations from this spec (recorded during build)
+
+The implementation follows the protocol above; these points differ from or
+refine the original write-up:
+
+1. **Two scripts, not one** (matches the existing classifier convention). The
+   numeric work lives in `pipeline/analysis/compute_classifier_augmented.py`; the
+   plot + best-model summary live in
+   `pipeline/analysis/shared_classifier_augmented_comparison.py` — exactly
+   mirroring `compute_classifier.py` + `shared_classifier_comparison.py`.
+2. **One invocation does the whole dataset.** The compute script takes
+   `--real-data`, `--split-indices`, and per-model `--cvae-data/--diffusion-data/
+   --gan-data`, and runs every condition, model, and inject fraction in a single
+   call. This is required so the fixed `rf_eval`, the `rf_train_pool`, and the
+   `real` baseline are built **once** and shared across all conditions (separate
+   per-model calls would redraw them). The `real` baseline is computed once and
+   reused across all inject fractions.
+3. **Config → CLI mapping.** `pct_val_added_for_augment` (float or list) is passed
+   to the module's `--inject-fracs`. `headline_metric` was added as a config key
+   (default `balanced_accuracy`) rather than chosen only at report time. All RF
+   settings inherit from the `classifier` block via the driver (`aug override →
+   classifier → default`), so the in-fold classifier matches the GO run.
+4. **`rf_results.csv` schema kept** (`gene, mean_importance, std_importance,
+   rank`) for fgsea compatibility, but `std_importance` is written as 0 —
+   importances are averaged across resamples and per-gene spread across resamples
+   is not tracked (not needed downstream; avoids holding every fold's full
+   importance vector).
+5. **Delta std by quadrature:** `delta_vs_dup_std = sqrt(std_synth² + std_dup²)`.
+   The two conditions share the eval set so are not fully independent; this is a
+   mildly conservative approximation, fine for flagging whether a gap exceeds
+   noise.
+6. **Replacement is fixed, not a config knob** (the planned `sample_replacement`
+   key was dropped): duplicates are always with-replacement; synthetic is
+   without-replacement with an automatic with-replacement fallback if a stratum is
+   too small/empty. Whether the fallback fired is recorded per run in
+   `injection_log.json` (`replacement_used`).
+7. **Outputs** per inject fraction: `frac_<X>/{scores.csv, deltas.csv,
+   injection_log.json, real_dup/rf_results.csv, <model>/rf_results.csv}` plus a
+   shared `real/rf_results.csv`; top level: `scores_table.csv`, `deltas_table.csv`,
+   `shared_classifier_augmented_summary.{json,csv}`, and the plots
+   (`augmentation_sweep.png` when X is swept, `augmentation_comparison_frac<X>.png`
+   per dosage). All written to the local `pipeline/outputs/` mirror.
+
 ## Known properties / caveats (by design, not bugs)
 
 1. **Scarcity is dataset-dependent, not controlled.** `rf_train_pool` is whatever

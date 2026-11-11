@@ -1,0 +1,9 @@
+Metric,Value
+Direction,DOWN
+Top N genes analyzed,50
+Real genes,50
+Synthetic_DIFFUSION genes,50
+Overlapping genes,19
+Jaccard Index,0.2346
+Overlap % (Real),38.00%
+Overlap % (Synthetic_DIFFUSION),38.00%

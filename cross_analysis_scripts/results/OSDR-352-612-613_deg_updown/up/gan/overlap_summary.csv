@@ -1,0 +1,9 @@
+Metric,Value
+Direction,UP
+Top N genes analyzed,50
+Real genes,50
+Synthetic_GAN genes,50
+Overlapping genes,36
+Jaccard Index,0.5625
+Overlap % (Real),72.00%
+Overlap % (Synthetic_GAN),72.00%

@@ -1,0 +1,7 @@
+model,direction,overlap_count,jaccard,overlap_pct_of_real
+cvae,up,1,0.0101,2.0
+cvae,down,9,0.0989,18.0
+diffusion,up,17,0.2048,34.0
+diffusion,down,19,0.2346,38.0
+gan,up,36,0.5625,72.0
+gan,down,22,0.2821,44.0

@@ -1,0 +1,5 @@
+dataset,n_up_genes,n_down_genes
+Real,952,1048
+cvae,1069,931
+diffusion,940,1060
+gan,817,1149

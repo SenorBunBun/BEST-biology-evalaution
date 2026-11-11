@@ -1,0 +1,9 @@
+Metric,Value
+Direction,DOWN
+Top N genes analyzed,50
+Real genes,50
+Synthetic_CVAE genes,50
+Overlapping genes,9
+Jaccard Index,0.0989
+Overlap % (Real),18.00%
+Overlap % (Synthetic_CVAE),18.00%

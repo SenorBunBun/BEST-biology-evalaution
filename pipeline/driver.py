@@ -1148,6 +1148,80 @@ def run_analysis(config: Dict, output_paths: Dict,
             cmd, "RF classifier comparison + combined plot", dry_run
         )
 
+    # Run synthetic-data AUGMENTATION classifier test (off by default).
+    # RF settings inherit from the `classifier` block so the in-fold classifier
+    # matches the GO-enrichment one. See pipeline/AUGMENTATION_PROTOCOL.md.
+    if analysis_config.get("classifier_augmented", {}).get("enabled", False):
+        clf_config = analysis_config.get("classifier", {})
+        aug_config = analysis_config.get("classifier_augmented", {})
+
+        def _aug(key, default):
+            """Augment override, else classifier value, else default."""
+            if key in aug_config:
+                return aug_config[key]
+            return clf_config.get(key, default)
+
+        aug_dir = output_paths["analysis"]["classifier_augmented"]
+        aug_dir.mkdir(parents=True, exist_ok=True)
+        split_path = output_paths["base"] / "data_split_indices.npz"
+
+        if not split_path.exists():
+            print_step(
+                f"classifier_augmented needs {split_path.name} (created during training) "
+                f"but it was not found; skipping augmentation.", "WARN")
+            results['classifier_augmented'] = False
+        else:
+            # inject fractions: accept a float or a list in config
+            inject = aug_config.get("pct_val_added_for_augment", 0.5)
+            inject_list = inject if isinstance(inject, (list, tuple)) else [inject]
+            inject_str = ",".join(str(x) for x in inject_list)
+            condition_cols = ",".join(conditions["columns"])
+            headline_metric = aug_config.get("headline_metric", "balanced_accuracy")
+
+            cmd = [
+                sys.executable,
+                str(Path(__file__).parent / "analysis" / "compute_classifier_augmented.py"),
+                "--real-data", real_data,
+                "--split-indices", str(split_path),
+                "--output-dir", str(aug_dir),
+                "--name", config["dataset_name"],
+                "--column-name", primary["column"],
+                "--group1", str(primary["group1"]),
+                "--group2", str(primary["group2"]),
+                "--condition-cols", condition_cols,
+                "--pct-val-eval", str(aug_config.get("pct_val_eval", 0.25)),
+                "--inject-fracs", inject_str,
+                "--n-resamples-augment", str(aug_config.get("n_resamples_augment", 10)),
+                "--n-genes", str(_aug("n_genes", 50)),
+                "--n-estimators", str(_aug("n_estimators", 100)),
+                "--max-depth", str(_aug("max_depth", 10)),
+                "--min-samples-split", str(_aug("min_samples_split", 5)),
+                "--min-samples-leaf", str(_aug("min_samples_leaf", 2)),
+                "--class-weight", str(_aug("class_weight", None) or "none"),
+                "--random-state", str(_aug("random_state", 42)),
+            ]
+            for model, synth_path in synthetic_paths.items():
+                cmd.extend([f"--{model}-data", synth_path])
+
+            results['classifier_augmented'] = run_subprocess(
+                cmd, "Augmentation classifier test", dry_run)
+
+            # combined plot + best-model summary
+            core_output_dir = output_paths["analysis"]["base"]
+            cmd = [
+                sys.executable,
+                str(Path(__file__).parent / "analysis" / "shared_classifier_augmented_comparison.py"),
+                "--aug-dir", str(aug_dir),
+                "--output-dir", str(aug_dir),
+                "--core-output-dir", str(core_output_dir),
+                "--dataset-name", config["dataset_name"],
+                "--headline-metric", headline_metric,
+            ]
+            if show_plots:
+                cmd.append("--show-plots")
+            results['classifier_augmented_comparison'] = run_subprocess(
+                cmd, "Augmentation comparison + plot", dry_run)
+
     # UMAP analysis
     if analysis_config.get("umap", {}).get("enabled", True):
         umap_output = output_paths["analysis"]["umap"]

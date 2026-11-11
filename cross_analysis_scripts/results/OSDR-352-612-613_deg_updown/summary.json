@@ -1,0 +1,17 @@
+{
+  "dataset_name": "OSDR-352-612-613",
+  "timestamp": "2026-11-11T01:32:19.673574",
+  "top_n": 50,
+  "real_n_up_genes": 952,
+  "real_n_down_genes": 1048,
+  "up_overlap_counts": {
+    "CVAE": 1,
+    "Diffusion": 17,
+    "GAN": 36
+  },
+  "down_overlap_counts": {
+    "CVAE": 9,
+    "Diffusion": 19,
+    "GAN": 22
+  }
+}

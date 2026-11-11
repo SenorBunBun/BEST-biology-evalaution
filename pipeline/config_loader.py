@@ -173,6 +173,19 @@ DEFAULTS = {
             "random_state": 42,
             "n_folds": 5,
             "n_repeats": 3
+        },
+        # Synthetic-data augmentation test (off by default = no-op).
+        # RF settings not set here fall back to the `classifier` block above, so
+        # the in-fold classifier is identical to the GO-enrichment one.
+        # See pipeline/AUGMENTATION_PROTOCOL.md.
+        "classifier_augmented": {
+            "enabled": False,
+            "pct_val_eval": 0.25,              # fixed, fully-stratified real eval set
+            "pct_val_added_for_augment": 0.5,  # float OR list, fraction of val size to inject
+            "n_resamples_augment": 10,         # augment-draw + RF-fit repeats (for mean +/- std)
+            "headline_metric": "balanced_accuracy"
+            # n_genes / n_estimators / max_depth / min_samples_split /
+            # min_samples_leaf / class_weight / random_state inherit from `classifier`.
         }
     }
 }
@@ -290,6 +303,7 @@ def get_output_paths(config: Dict) -> Dict:
             "umap": base_dir / "analysis" / "umap",
             "metrics": base_dir / "analysis" / "metrics",
             "classifier": base_dir / "analysis" / "classifier",
+            "classifier_augmented": base_dir / "analysis" / "classifier_augmented",
         }
     }
 
