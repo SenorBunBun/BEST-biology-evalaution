@@ -2,7 +2,7 @@
 """
 CVAE Training Script for Pipeline Integration
 
-Based on train_cvae_cancer.py - uses the model's built-in train_net() method.
+Uses the model's built-in train_net() method.
 
 Usage:
     python train.py --data path/to/data.h5ad --output-dir path/to/output --condition-cols col1,col2
@@ -164,7 +164,7 @@ def evaluate_mmd_cvae(model, val_adata, condition_cols, device, sigma, real_data
 
 
 def train_cvae(args):
-    """Main training function - based on train_cvae_cancer.py"""
+    """Main training function."""
     print("CVAE Training")
     print("=" * 40)
 

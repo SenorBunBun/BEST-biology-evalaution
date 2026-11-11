@@ -319,8 +319,6 @@ original_rele_files/           # ENTIRE DIRECTORY - Archived copies
 
 | File | Reason Unused |
 |------|---------------|
-| `models/CVAE/train_cvae_cancer.py` | Cancer-specific standalone trainer (pre-pipeline) |
-| `models/CVAE/cvae_generate_dataset_cancer.py` | Cancer-specific standalone generator (pre-pipeline) |
 | `models/CVAE/unbatch_vanilla_cvae_relu_qol.py` | Older non-categorical version; replaced by `*_categorical.py` |
 
 ---
@@ -339,7 +337,6 @@ original_rele_files/           # ENTIRE DIRECTORY - Archived copies
 
 | File | Reason Unused |
 |------|---------------|
-| `models/GAN/train_original.py` | Original/legacy training script |
 | `models/GAN/generate_original.py` | Original/legacy generation script |
 | `models/GAN/evaluate_conditions_cancer.py` | Cancer-specific evaluation utility |
 | `models/GAN/utils/condition_processor.py` | Original processor; replaced by `*_generic.py` |

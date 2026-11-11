@@ -4,8 +4,7 @@ CVAE Generation Script for Pipeline Integration
 
 Generates synthetic scRNA-seq data using a trained CVAE model,
 matching the condition distributions from the original dataset.
-
-Based on cvae_generate_dataset_cancer.py - uses the model's built-in label encoders.
+Uses the model's built-in label encoders.
 
 Usage:
     python generate.py --data path/to/data.h5ad --model path/to/model.pt --output path/to/output.h5ad
@@ -163,7 +162,7 @@ def encode_conditions_with_model_encoders(condition_dicts, label_encoders, condi
 
 
 def generate_synthetic_data(args):
-    """Main generation function - based on cvae_generate_dataset_cancer.py."""
+    """Main generation function."""
     print("=" * 60)
     print("CVAE Synthetic Data Generation")
     print("=" * 60)

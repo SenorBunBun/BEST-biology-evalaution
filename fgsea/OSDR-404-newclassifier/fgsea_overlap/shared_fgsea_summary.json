@@ -1,0 +1,26 @@
+{
+  "dataset_name": "OSDR-404-newclassifier",
+  "timestamp": "2026-11-10T18:30:40.826171",
+  "organism": "mouse",
+  "top_n_genes": 50,
+  "max_go_per_model": 10,
+  "fdr_q_threshold": 0.05,
+  "real_significant_go": 10,
+  "msigdb_collections": [
+    "m5.all"
+  ],
+  "msigdb_version": "2026.2.Mm",
+  "universe_N": 46339,
+  "go_overlap_counts": {
+    "CVAE": 0,
+    "Diffusion": 9,
+    "GAN": 5
+  },
+  "go_overlap_pct_of_real": {
+    "CVAE": 0.0,
+    "Diffusion": 90.0,
+    "GAN": 50.0
+  },
+  "best_model": "Diffusion",
+  "best_model_count": 9
+}

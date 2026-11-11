@@ -167,6 +167,10 @@ DEFAULTS = {
             "n_genes": 50,
             "n_estimators": 100,
             "max_depth": 10,
+            "min_samples_split": 5,
+            "min_samples_leaf": 2,
+            "class_weight": None,
+            "random_state": 42,
             "n_folds": 5,
             "n_repeats": 3
         }

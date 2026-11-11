@@ -21,7 +21,10 @@ import scanpy as sc
 from scipy import sparse
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RepeatedStratifiedKFold
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score,
+    balanced_accuracy_score, roc_auc_score, average_precision_score,
+)
 import warnings
 
 warnings.filterwarnings('ignore')
@@ -48,6 +51,17 @@ def parse_args():
                         help='Number of top genes to return (default: 50)')
     parser.add_argument('--n-estimators', type=int, default=100,
                         help='Number of RF estimators (default: 100)')
+    parser.add_argument('--max-depth', type=int, default=10,
+                        help='Max tree depth; use <=0 for None/unbounded (default: 10)')
+    parser.add_argument('--min-samples-split', type=int, default=5,
+                        help='Min samples to split an internal node (default: 5)')
+    parser.add_argument('--min-samples-leaf', type=int, default=2,
+                        help='Min samples at a leaf node (default: 2)')
+    parser.add_argument('--class-weight', default=None,
+                        help="RF class_weight: 'balanced', 'balanced_subsample', or "
+                             "'none'/unset for no weighting (default: none)")
+    parser.add_argument('--random-state', type=int, default=42,
+                        help='Random seed (default: 42)')
     parser.add_argument('--n-folds', type=int, default=5,
                         help='Number of CV folds (default: 5)')
     parser.add_argument('--n-repeats', type=int, default=3,
@@ -56,9 +70,24 @@ def parse_args():
     return parser.parse_args()
 
 
+def parse_class_weight(value):
+    """Normalize a class_weight CLI/config value to what sklearn expects.
+
+    '', 'none', 'null' (any case) -> None; otherwise the string is passed
+    through (e.g. 'balanced', 'balanced_subsample').
+    """
+    if value is None:
+        return None
+    v = str(value).strip()
+    if v.lower() in ('', 'none', 'null'):
+        return None
+    return v
+
+
 def compute_rf_classification(adata, column_name, group1, group2, n_genes=50,
                                n_estimators=100, n_folds=5, n_repeats=3,
-                               random_state=42):
+                               max_depth=10, min_samples_split=5, min_samples_leaf=2,
+                               class_weight=None, random_state=42):
     """
     Run RF classification with repeated stratified k-fold CV on a single dataset.
 
@@ -128,15 +157,22 @@ def compute_rf_classification(adata, column_name, group1, group2, n_genes=50,
     print(f"  Data shape: {X.shape}")
     print(f"  Class distribution: {group1_str}={np.sum(y == 0)}, {group2_str}={np.sum(y == 1)}")
 
-    # RF parameters
+    # RF parameters (all configurable; <=0 max_depth means unbounded)
+    class_weight = parse_class_weight(class_weight)
     rf_params = {
         'n_estimators': n_estimators,
-        'max_depth': 10,
-        'min_samples_split': 5,
-        'min_samples_leaf': 2,
+        'max_depth': max_depth if (max_depth is not None and max_depth > 0) else None,
+        'min_samples_split': min_samples_split,
+        'min_samples_leaf': min_samples_leaf,
+        'class_weight': class_weight,
         'random_state': random_state,
         'n_jobs': -1
     }
+    print(f"  RF params: n_estimators={rf_params['n_estimators']}, "
+          f"max_depth={rf_params['max_depth']}, "
+          f"min_samples_split={rf_params['min_samples_split']}, "
+          f"min_samples_leaf={rf_params['min_samples_leaf']}, "
+          f"class_weight={rf_params['class_weight']}")
 
     # Cross-validation
     rskf = RepeatedStratifiedKFold(
@@ -161,12 +197,27 @@ def compute_rf_classification(adata, column_name, group1, group2, n_genes=50,
         rf = RandomForestClassifier(**rf_params)
         rf.fit(X_train, y_train)
         y_pred = rf.predict(X_test)
+        # Probability of the positive class (group2=1) for threshold-free metrics
+        y_proba = rf.predict_proba(X_test)[:, 1]
+
+        # ROC-AUC / PR-AUC are undefined if a test fold has a single class;
+        # stratified CV avoids this, but guard anyway.
+        if len(np.unique(y_test)) > 1:
+            roc_auc = roc_auc_score(y_test, y_proba)
+            pr_auc = average_precision_score(y_test, y_proba)
+        else:
+            roc_auc = np.nan
+            pr_auc = np.nan
 
         metrics = {
             'accuracy': accuracy_score(y_test, y_pred),
             'precision': precision_score(y_test, y_pred, zero_division=0),
             'recall': recall_score(y_test, y_pred, zero_division=0),
-            'f1': f1_score(y_test, y_pred, zero_division=0)
+            'f1': f1_score(y_test, y_pred, zero_division=0),
+            'f1_macro': f1_score(y_test, y_pred, average='macro', zero_division=0),
+            'balanced_accuracy': balanced_accuracy_score(y_test, y_pred),
+            'roc_auc': roc_auc,
+            'pr_auc': pr_auc,
         }
         all_metrics.append(metrics)
         all_importances.append(rf.feature_importances_)
@@ -180,13 +231,17 @@ def compute_rf_classification(adata, column_name, group1, group2, n_genes=50,
     mean_importances = np.mean(all_importances, axis=0)
     std_importances = np.std(all_importances, axis=0)
 
+    metric_order = ['accuracy', 'precision', 'recall', 'f1',
+                    'f1_macro', 'balanced_accuracy', 'roc_auc', 'pr_auc']
+
     metrics_df = pd.DataFrame(all_metrics)
     mean_metrics = metrics_df.mean()
     std_metrics = metrics_df.std()
 
     print(f"\n  CV Results:")
-    for metric_name in ['accuracy', 'precision', 'recall', 'f1']:
-        print(f"    {metric_name.capitalize():12s}: {mean_metrics[metric_name]:.4f} +/- {std_metrics[metric_name]:.4f}")
+    for metric_name in metric_order:
+        print(f"    {metric_name.replace('_', ' ').capitalize():18s}: "
+              f"{mean_metrics[metric_name]:.4f} +/- {std_metrics[metric_name]:.4f}")
 
     # Top N genes by mean importance
     top_idx = np.argsort(mean_importances)[::-1][:n_genes]
@@ -199,9 +254,9 @@ def compute_rf_classification(adata, column_name, group1, group2, n_genes=50,
     })
 
     rf_metrics = pd.DataFrame({
-        'metric': ['accuracy', 'precision', 'recall', 'f1'],
-        'mean': [mean_metrics[m] for m in ['accuracy', 'precision', 'recall', 'f1']],
-        'std': [std_metrics[m] for m in ['accuracy', 'precision', 'recall', 'f1']]
+        'metric': metric_order,
+        'mean': [mean_metrics[m] for m in metric_order],
+        'std': [std_metrics[m] for m in metric_order]
     })
 
     print(f"\n  Top 5 most predictive genes:")
@@ -222,6 +277,9 @@ def main():
     print(f"  Groups: {args.group2} (1) vs {args.group1} (0)")
     print(f"  N genes: {args.n_genes}")
     print(f"  N estimators: {args.n_estimators}")
+    print(f"  Max depth: {args.max_depth}  Min split: {args.min_samples_split}  "
+          f"Min leaf: {args.min_samples_leaf}")
+    print(f"  Class weight: {parse_class_weight(args.class_weight)}")
     print(f"  CV: {args.n_folds}-fold x {args.n_repeats} repeats")
 
     # Load data
@@ -244,7 +302,12 @@ def main():
             n_genes=args.n_genes,
             n_estimators=args.n_estimators,
             n_folds=args.n_folds,
-            n_repeats=args.n_repeats
+            n_repeats=args.n_repeats,
+            max_depth=args.max_depth,
+            min_samples_split=args.min_samples_split,
+            min_samples_leaf=args.min_samples_leaf,
+            class_weight=args.class_weight,
+            random_state=args.random_state
         )
     except Exception as e:
         print(f"[ERROR] RF classification failed: {e}")
