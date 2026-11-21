@@ -206,42 +206,71 @@ def write_rf_results(importances, gene_names, n_genes, out_dir):
 
 def run_dataset(real_adata, synth_adatas, column_name, group1, group2,
                 condition_cols, pct_val_eval, inject_fracs, n_resamples_augment,
-                split_path, n_genes, rf_params, random_state, output_dir):
-    """Run the full augmentation experiment for one dataset."""
+                split_path, n_genes, rf_params, random_state, output_dir,
+                augment_pool="train_eval_same_as_model"):
+    """Run the full augmentation experiment for one dataset.
+
+    augment_pool selects where the real train pool and eval set come from:
+      "train_eval_same_as_model" (DEFAULT): rf_train_pool = the FULL TRAIN split,
+          rf_eval = the ENTIRE VAL split (the same train/val the generative models
+          used). Dosage + injection strata are based on the TRAIN pool. Uses all
+          the real training data and keeps eval leakage-proof (val is never in
+          the classifier's training set and is identical across conditions).
+      "only_val" (original behavior): carve BOTH rf_train_pool and the fixed
+          rf_eval out of the VALIDATION split (a stratified sub-split of val).
+          Dosage + injection strata match the full val distribution (scarce-data
+          regime).
+    """
     out = Path(output_dir)
     out.mkdir(parents=True, exist_ok=True)
 
-    # --- subset real to val, then to the two primary classes ---
+    # --- choose the real train pool + eval set per augment_pool mode ---
     from utils.data_splitter import load_split_indices
-    _, val_idx = load_split_indices(str(split_path))
+    train_idx, val_idx = load_split_indices(str(split_path))
     g1, g2 = str(group1), str(group2)
     real_adata.obs[column_name] = real_adata.obs[column_name].astype(str)
-    val_adata = real_adata[val_idx].copy()
-    val_adata = val_adata[val_adata.obs[column_name].isin([g1, g2])].copy()
-    N_val = val_adata.n_obs
-    gene_names = val_adata.var_names.values
 
-    # condition cols that actually exist in val
-    strat_cols = [c for c in condition_cols if c in val_adata.obs.columns]
+    def _two_class(a):
+        return a[a.obs[column_name].isin([g1, g2])].copy()
+
+    if augment_pool == "train_eval_same_as_model":
+        pool_adata = _two_class(real_adata[train_idx])   # rf_train = full train split
+        eval_adata = _two_class(real_adata[val_idx])     # rf_eval  = entire val split
+        ref_adata = pool_adata                           # dosage/strata from train
+    elif augment_pool == "only_val":
+        val_adata = _two_class(real_adata[val_idx])
+        strat0 = [c for c in condition_cols if c in val_adata.obs.columns]
+        if column_name not in strat0:
+            strat0 = [column_name] + strat0
+        pool_pos, eval_pos = stratified_split(
+            val_adata, strat0, val_ratio=pct_val_eval, seed=random_state)
+        eval_adata = val_adata[eval_pos]
+        pool_adata = val_adata[pool_pos]
+        ref_adata = val_adata                            # dosage/strata from full val
+    else:
+        raise ValueError(f"Unknown augment_pool '{augment_pool}' "
+                         f"(expected 'only_val' or 'train_eval_same_as_model')")
+
+    gene_names = pool_adata.var_names.values
+    strat_cols = [c for c in condition_cols if c in ref_adata.obs.columns]
     if column_name not in strat_cols:
         strat_cols = [column_name] + strat_cols
-    print(f"  Stratifying on: {strat_cols}")
-    print(f"  Val cells (2 classes): {N_val}")
 
-    # --- fixed eval set via the shared stratified splitter (val_ratio = eval frac) ---
-    pool_pos, eval_pos = stratified_split(
-        val_adata, strat_cols, val_ratio=pct_val_eval, seed=random_state)
-    eval_adata = val_adata[eval_pos]
-    pool_adata = val_adata[pool_pos]
     X_eval = to_dense(eval_adata.X)
     y_eval = (eval_adata.obs[column_name].values == g2).astype(int)
     X_pool = to_dense(pool_adata.X)
     y_pool = (pool_adata.obs[column_name].values == g2).astype(int)
+
+    # Dosage base + injection strata come from ref_adata (val for only_val, the
+    # train pool for train_eval_same_as_model). Kept under the original names so
+    # the rest of the routine is unchanged; in only_val these are byte-identical.
+    N_val = ref_adata.n_obs
+    print(f"  augment_pool={augment_pool} | stratifying on: {strat_cols}")
+    print(f"  dosage base (ref) cells: {N_val}")
     print(f"  rf_eval: {eval_adata.n_obs} cells | rf_train_pool: {pool_adata.n_obs} cells")
 
-    # strata bookkeeping
-    val_keys = strata_key(val_adata.obs, strat_cols)
-    val_stratum_sizes = OrderedDict(pd.Series(val_keys).value_counts().sort_index().items())
+    ref_keys = strata_key(ref_adata.obs, strat_cols)
+    val_stratum_sizes = OrderedDict(pd.Series(ref_keys).value_counts().sort_index().items())
     pool_keys = strata_key(pool_adata.obs, strat_cols)
     pool_positions = {s: np.where(pool_keys == s)[0] for s in val_stratum_sizes}
     eval_keys = strata_key(eval_adata.obs, strat_cols)
@@ -299,6 +328,8 @@ def run_dataset(real_adata, synth_adatas, column_name, group1, group2,
 
         injection_log = {
             'inject_frac': frac,
+            'augment_pool': augment_pool,
+            'dosage_base_n': int(N_val),
             'N_val': int(N_val),
             'n_add_total': int(n_add_total),
             'pct_val_eval': pct_val_eval,
@@ -400,6 +431,12 @@ def parse_args():
     p.add_argument('--group2', required=True)
     p.add_argument('--condition-cols', required=True,
                    help='Comma-separated condition columns for stratification')
+    p.add_argument('--augment-pool', default='train_eval_same_as_model',
+                   choices=['only_val', 'train_eval_same_as_model'],
+                   help="train_eval_same_as_model (default): rf_train_pool = full train "
+                        "split, rf_eval = entire val split (dosage based on the train pool). "
+                        "only_val: rf_train_pool + rf_eval are both carved from the "
+                        "validation split.")
     p.add_argument('--pct-val-eval', type=float, default=0.25)
     p.add_argument('--inject-fracs', default='0.5',
                    help='Comma-separated fractions of val size to inject (sweep)')
@@ -426,8 +463,8 @@ def main():
     rf_params = build_rf_params(args.n_estimators, args.max_depth, args.min_samples_split,
                                 args.min_samples_leaf, args.class_weight, args.random_state)
     print(f"  RF: {rf_params}")
-    print(f"  pct_val_eval={args.pct_val_eval} inject_fracs={inject_fracs} "
-          f"n_resamples_augment={args.n_resamples_augment}")
+    print(f"  augment_pool={args.augment_pool} pct_val_eval={args.pct_val_eval} "
+          f"inject_fracs={inject_fracs} n_resamples_augment={args.n_resamples_augment}")
 
     print("\nLoading real data...")
     real_adata = sc.read_h5ad(args.real_data)
@@ -452,6 +489,7 @@ def main():
             inject_fracs=inject_fracs, n_resamples_augment=args.n_resamples_augment,
             split_path=args.split_indices, n_genes=args.n_genes, rf_params=rf_params,
             random_state=args.random_state, output_dir=args.output_dir,
+            augment_pool=args.augment_pool,
         )
     except Exception as e:
         print(f"[ERROR] Augmentation run failed: {e}")

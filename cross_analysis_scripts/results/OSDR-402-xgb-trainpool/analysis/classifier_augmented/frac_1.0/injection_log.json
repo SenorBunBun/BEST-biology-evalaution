@@ -1,0 +1,38 @@
+{
+  "inject_frac": 1.0,
+  "N_train": 1228,
+  "n_add_total": 1228,
+  "rf_eval_n": 306,
+  "rf_train_pool_n": 1228,
+  "eval_set": "val_split",
+  "train_set": "train_split",
+  "strat_cols": [
+    "Flight",
+    "Strain",
+    "Sex",
+    "Age at Launch",
+    "Duration"
+  ],
+  "n_resamples_augment": 10,
+  "n_add_per_stratum": {
+    "Flight_C57BL/6NTac_Female_12_32": 360,
+    "Flight_C57BL/6NTac_Female_29_32": 500,
+    "Ground_C57BL/6NTac_Female_29_32": 368
+  },
+  "replacement_used": {
+    "real_dup": true,
+    "gan": false
+  },
+  "classifier": "XGBoost",
+  "xgb_params": {
+    "n_estimators": 100,
+    "max_depth": 2,
+    "learning_rate": 0.05,
+    "subsample": 0.8,
+    "colsample_bytree": 0.3,
+    "reg_lambda": 1.0,
+    "tree_method": "hist",
+    "eval_metric": "logloss",
+    "n_jobs": -1
+  }
+}

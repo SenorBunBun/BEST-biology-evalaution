@@ -45,14 +45,46 @@ they never form their own class.
 | Param | Default | Meaning |
 |---|---|---|
 | `enabled` | `false` | Off by default → stage is a no-op unless turned on. |
-| `pct_val_eval` | `0.25` | Fraction of val reserved as the fixed `rf_eval` set, drawn **fully stratified** on all `conditions.columns` (preserves val's joint distribution, not 50/50). |
-| `pct_val_added_for_augment` | `0.5` | How many cells to add to training, as a fraction of val size, allocated across **val's full joint condition strata**. **Float or list** (e.g. `[0.25, 0.5, 1.0]`) to sweep; results are saved per value. |
+| `augment_pool` | `"train_eval_same_as_model"` | Where the real train pool + eval come from. **`"train_eval_same_as_model"`** (default): `rf_train_pool` = the **full train split**, `rf_eval` = the **entire val split** (the same train/val the generators used); dosage = fraction of the **train pool** size, strata matched to the train pool. **`"only_val"`**: `rf_train_pool` and the fixed `rf_eval` are both carved from the **val** split (dosage = fraction of val size). See "Augment-pool modes" below. |
+| `pct_val_eval` | `0.25` | **(only_val mode only)** Fraction of val reserved as the fixed `rf_eval` set, drawn **fully stratified** on all `conditions.columns` (preserves val's joint distribution, not 50/50). Ignored in `train_eval_same_as_model` (eval = all of val). |
+| `pct_val_added_for_augment` | `0.5` | How many cells to add to training, as a fraction of the **dosage-base** size (val in `only_val`, the train pool in `train_eval_same_as_model`), allocated across the dosage-base's **full joint condition strata**. **Float or list** (e.g. `[0.25, 0.5, 1.0]`) to sweep; results are saved per value. |
 | `n_resamples_augment` | `10` | Number of repeated augment-draw + RF-fit cycles per condition, for mean ± std. Each is a single RF fit (cheap), so 10 gives solid error bars. (Distinct from the classifier's CV `n_repeats` — see "The `n_resamples_augment` parameter" below.) |
 | `n_genes` | inherit | Top-N genes reported in the importance output (for fgsea compatibility). |
 | `n_estimators`, `max_depth`, `min_samples_split`, `min_samples_leaf`, `class_weight`, `random_state` | inherit from `analysis.classifier` | RF settings — identical to the GO-enrichment classifier so results are comparable. |
 
 All RF settings default to the same values used in the GO-overlap runs
 (`class_weight="balanced_subsample"`, etc.). Absence of the block ⇒ disabled.
+
+### Augment-pool modes (`augment_pool`)
+
+Two ways to source the real train pool and eval set. The injected synthetic/dup
+machinery (allocation across strata, with/without replacement, `n_resamples`,
+deltas) is identical; only the real split changes.
+
+| | `"only_val"` | `"train_eval_same_as_model"` (default) |
+|---|---|---|
+| `rf_train_pool` | `(1 − pct_val_eval)` of the **val** split | the **full train split** |
+| `rf_eval` | `pct_val_eval` of the **val** split (fixed, stratified) | the **entire val split** (fixed) |
+| dosage base (what `X` is a fraction of) | val size | train-pool size |
+| injection strata matched to | val's joint distribution | the train pool's joint distribution |
+| real data used by the classifier | val only (scarce regime) | all training data |
+
+- **`only_val`** keeps the experiment entirely inside the held-out val split, so
+  it is self-contained and maximally conservative about leakage — but it starves
+  the classifier (e.g. ~230 train cells for OSDR-402), which is why absolute
+  accuracies are low and augmentation effects look largest here (the scarce-data
+  regime where augmentation is *supposed* to help).
+- **`train_eval_same_as_model`** is the standard train/val setup: train on the
+  real training split (+ synthetic/dup), evaluate on the untouched val split,
+  identical across all conditions. It is **leakage-proof for the classifier**
+  (val never enters the classifier's training data) and uses all the real data,
+  so it is the more realistic read of whether synthetic *adds* anything.
+
+> **MMD caveat (both modes):** the generators' *weights* are trained only on the
+> train split, but val drives their **MMD early-stopping / checkpoint
+> selection**. So val is unseen by the generators' gradients yet did inform model
+> selection — a mild caveat worth noting when val is used as `rf_eval`, not a
+> gradient-level leak.
 
 ---
 

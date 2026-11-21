@@ -1,0 +1,6 @@
+inject_frac,model,delta_vs_dup,delta_vs_real
+0.25,GAN,0.0291,0.0347
+0.5,GAN,0.049,0.0446
+1.0,GAN,0.0494,0.0277
+1.5,GAN,0.0656,0.0674
+2.0,GAN,0.0389,0.0618

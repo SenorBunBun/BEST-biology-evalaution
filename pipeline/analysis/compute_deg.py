@@ -75,8 +75,9 @@ def compute_deg(adata, column_name, group1, group2, method='wilcoxon', n_genes=5
 
     Returns
     -------
-    pd.DataFrame
-        Top N DEG results sorted by adjusted p-value then absolute log-fold-change.
+    (pd.DataFrame, pd.DataFrame)
+        (top_results, full_results): the top-N table and the full all-genes
+        table, both sorted by adjusted p-value then absolute log-fold-change.
     """
     # Validate column exists
     if column_name not in adata.obs.columns:
@@ -133,7 +134,7 @@ def compute_deg(adata, column_name, group1, group2, method='wilcoxon', n_genes=5
         print(f"  Top gene: {top_results.iloc[0]['names']} "
               f"(adj p-val: {top_results.iloc[0]['pvals_adj']:.2e})")
 
-    return top_results
+    return top_results, result_df
 
 
 def main():
@@ -160,7 +161,7 @@ def main():
     # Compute DEGs
     print("\nRunning DEG analysis...")
     try:
-        result_df = compute_deg(
+        top_results, full_results = compute_deg(
             adata,
             column_name=args.column_name,
             group1=args.group1,
@@ -178,8 +179,12 @@ def main():
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
     output_path = output_dir / "deg_results.csv"
-    result_df.to_csv(output_path, index=False)
-    print(f"\n[OK] Saved {len(result_df)} DEGs to: {output_path}")
+    top_results.to_csv(output_path, index=False)
+    print(f"\n[OK] Saved {len(top_results)} DEGs to: {output_path}")
+
+    full_path = output_dir / "deg_results_all.csv"
+    full_results.to_csv(full_path, index=False)
+    print(f"[OK] Saved all {len(full_results)} gene stats to: {full_path}")
 
     sys.exit(0)
 

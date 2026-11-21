@@ -180,8 +180,18 @@ DEFAULTS = {
         # See pipeline/AUGMENTATION_PROTOCOL.md.
         "classifier_augmented": {
             "enabled": False,
-            "pct_val_eval": 0.25,              # fixed, fully-stratified real eval set
-            "pct_val_added_for_augment": 0.5,  # float OR list, fraction of val size to inject
+            # augment_pool: where the real train pool + eval come from.
+            #   "train_eval_same_as_model": rf_train_pool = full train split,
+            #       rf_eval = entire val split (same split the generators used;
+            #       dosage is a fraction of the train pool). DEFAULT. Leakage-proof,
+            #       uses all real training data. NOTE: val drives the generators'
+            #       MMD early-stopping, so it is unseen by their *weights* but did
+            #       inform model selection — a mild caveat, not a gradient leak.
+            #   "only_val": rf_train_pool + rf_eval both carved from the val split
+            #       (dosage is a fraction of val size; scarce-data regime).
+            "augment_pool": "train_eval_same_as_model",
+            "pct_val_eval": 0.25,              # only_val: fixed fully-stratified eval fraction
+            "pct_val_added_for_augment": 0.5,  # float OR list, fraction of the dosage-base size to inject
             "n_resamples_augment": 10,         # augment-draw + RF-fit repeats (for mean +/- std)
             "headline_metric": "balanced_accuracy"
             # n_genes / n_estimators / max_depth / min_samples_split /

@@ -1,0 +1,57 @@
+{
+  "dataset_name": "OSDR-402-XGB-trainpool",
+  "timestamp": "2026-11-13T18:18:12.951246",
+  "headline_metric": "balanced_accuracy",
+  "per_inject_frac": {
+    "0.25": {
+      "GAN": {
+        "delta_vs_dup": -0.0137,
+        "delta_vs_dup_std": 0.0186,
+        "delta_vs_real": -0.0275
+      },
+      "best_model": "GAN",
+      "best_delta_vs_dup": -0.0137
+    },
+    "0.5": {
+      "GAN": {
+        "delta_vs_dup": -0.0172,
+        "delta_vs_dup_std": 0.0191,
+        "delta_vs_real": -0.0282
+      },
+      "best_model": "GAN",
+      "best_delta_vs_dup": -0.0172
+    },
+    "1.0": {
+      "GAN": {
+        "delta_vs_dup": -0.0128,
+        "delta_vs_dup_std": 0.0237,
+        "delta_vs_real": -0.0255
+      },
+      "best_model": "GAN",
+      "best_delta_vs_dup": -0.0128
+    },
+    "1.5": {
+      "GAN": {
+        "delta_vs_dup": -0.0123,
+        "delta_vs_dup_std": 0.0212,
+        "delta_vs_real": -0.0274
+      },
+      "best_model": "GAN",
+      "best_delta_vs_dup": -0.0123
+    },
+    "2.0": {
+      "GAN": {
+        "delta_vs_dup": -0.0179,
+        "delta_vs_dup_std": 0.0381,
+        "delta_vs_real": -0.0295
+      },
+      "best_model": "GAN",
+      "best_delta_vs_dup": -0.0179
+    }
+  },
+  "best_overall": {
+    "model": "GAN",
+    "delta_vs_dup": -0.0123,
+    "inject_frac": 1.5
+  }
+}
